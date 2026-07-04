@@ -59,3 +59,77 @@ CREATE TABLE IF NOT EXISTS raw.timesheet_raw (
     source_file TEXT NOT NULL,
     loaded_at TIMESTAMP NOT NULL DEFAULT now()
 );
+
+CREATE SCHEMA IF NOT EXISTS staging;
+
+CREATE TABLE IF NOT EXISTS staging.employee_staging (
+    client_employee_id TEXT PRIMARY KEY,
+    first_name TEXT,
+    middle_name TEXT,
+    last_name TEXT,
+    preferred_name TEXT,
+    job_code TEXT,
+    job_title TEXT,
+    job_start_date DATE,
+    organization_id TEXT,
+    organization_name TEXT,
+    department_id TEXT,
+    department_name TEXT,
+    dob DATE,
+    hire_date DATE,
+    recent_hire_date DATE,
+    anniversary_date DATE,
+    term_date DATE,
+    years_of_experience NUMERIC,
+    work_email TEXT,
+    address TEXT,
+    city TEXT,
+    state TEXT,
+    zip TEXT,
+    country TEXT,
+    manager_employee_id TEXT,
+    manager_employee_name TEXT,
+    fte_status TEXT,
+    is_per_deim BOOLEAN,
+    cell_phone TEXT,
+    work_phone TEXT,
+    scheduled_weekly_hour NUMERIC,
+    active_status BOOLEAN,
+    termination_reason TEXT,
+    clinical_level TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS staging.timesheet_staging (
+    timesheet_id BIGSERIAL PRIMARY KEY,
+    client_employee_id TEXT NOT NULL REFERENCES staging.employee_staging(client_employee_id),
+    department_id TEXT,
+    department_name TEXT,
+    home_department_id TEXT,
+    home_department_name TEXT,
+    pay_code TEXT,
+    punch_in_comment TEXT,
+    punch_out_comment TEXT,
+    hours_worked NUMERIC,
+    punch_apply_date DATE,
+    punch_in_datetime TIMESTAMP,
+    punch_out_datetime TIMESTAMP,
+    scheduled_start_datetime TIMESTAMP,
+    scheduled_end_datetime TIMESTAMP,
+    source_file TEXT NOT NULL,
+    loaded_at TIMESTAMP NOT NULL DEFAULT now(),
+    created_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_timesheet_staging_employee_id
+    ON staging.timesheet_staging (client_employee_id);
+
+CREATE INDEX IF NOT EXISTS idx_timesheet_staging_punch_date
+    ON staging.timesheet_staging (punch_apply_date);
+
+CREATE INDEX IF NOT EXISTS idx_employee_staging_department
+    ON staging.employee_staging (department_id);
+
+CREATE INDEX IF NOT EXISTS idx_employee_staging_active_status
+    ON staging.employee_staging (active_status);
