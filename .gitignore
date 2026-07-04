@@ -1,0 +1,41 @@
+.venv
+# Environment and secrets
+.env
+config/.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+
+# Data
+data/raw/
+data/processed/
+*.csv
+*.parquet
+
+# Logs
+*.log
+logs/
+
+# Airflow
+airflow.cfg
+airflow.db
+logs/
+airflow-webserver.pid
+
+# Database
+*.sqlite3
+*.db
+
+# Docker
+*.pid
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/

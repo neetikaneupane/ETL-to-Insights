@@ -1,0 +1,36 @@
+environment: development
+
+database:
+  host: ${DB_HOST}
+  port: ${DB_PORT}
+  name: ${DB_NAME}
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+
+storage:
+  source: local
+  local:
+    employee_path: data/raw/employee
+    timesheet_path: data/raw/timesheet
+  minio:
+    endpoint: ${MINIO_ENDPOINT}
+    access_key: ${MINIO_ACCESS_KEY}
+    secret_key: ${MINIO_SECRET_KEY}
+    bucket_name: ${MINIO_BUCKET}
+    employee_prefix: employee/
+    timesheet_prefix: timesheet/
+
+file_format:
+  delimiter: "|"
+  quote_char: "\""
+  null_values: ["[NULL]", "", "NULL"]
+  encoding: utf-8
+
+business_rules:
+  grace_period_minutes: 5
+  early_attrition_months: 6
+
+logging:
+  level: INFO
+  log_dir: logs/
+  log_file: etl_pipeline.log
