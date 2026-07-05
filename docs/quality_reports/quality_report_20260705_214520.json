@@ -1,0 +1,44 @@
+[
+  {
+    "check_name": "curated_employee_no_duplicate_ids",
+    "severity": "critical",
+    "passed": true,
+    "metric_value": 0.0
+  },
+  {
+    "check_name": "curated_timesheet_orphan_employee_refs",
+    "severity": "critical",
+    "passed": true,
+    "metric_value": 0.0
+  },
+  {
+    "check_name": "curated_employee_hire_before_term",
+    "severity": "critical",
+    "passed": true,
+    "metric_value": 0.0
+  },
+  {
+    "check_name": "curated_timesheet_punch_out_after_in",
+    "severity": "critical",
+    "passed": true,
+    "metric_value": 0.0
+  },
+  {
+    "check_name": "curated_employee_null_hire_date_real_employees",
+    "severity": "warning",
+    "passed": true,
+    "metric_value": 0.0
+  },
+  {
+    "check_name": "curated_timesheet_missing_schedule_percentage",
+    "severity": "warning",
+    "passed": true,
+    "metric_value": 56.75
+  },
+  {
+    "check_name": "curated_employee_placeholder_ratio_percentage",
+    "severity": "warning",
+    "passed": true,
+    "metric_value": 99.53
+  }
+]
