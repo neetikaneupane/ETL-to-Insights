@@ -210,3 +210,15 @@ CREATE INDEX IF NOT EXISTS idx_curated_employee_department
 
 CREATE INDEX IF NOT EXISTS idx_curated_employee_active_status
     ON curated.employee (active_status);
+
+CREATE SCHEMA IF NOT EXISTS quality;
+
+CREATE TABLE IF NOT EXISTS quality.check_results (
+    id BIGSERIAL PRIMARY KEY,
+    run_at TIMESTAMP NOT NULL DEFAULT now(),
+    check_name TEXT NOT NULL,
+    severity TEXT NOT NULL,
+    passed BOOLEAN NOT NULL,
+    metric_value NUMERIC,
+    details TEXT
+);
