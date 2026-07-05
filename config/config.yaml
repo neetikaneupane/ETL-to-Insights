@@ -8,7 +8,7 @@ database:
   password: ${DB_PASSWORD}
 
 storage:
-  source: local
+  source: minio
   local:
     employee_path: data/raw/employee
     timesheet_path: data/raw/timesheet
