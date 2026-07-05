@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from sqlalchemy import MetaData, Table
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -20,6 +21,26 @@ DATETIME_COLUMNS = [
 DATE_COLUMNS = ["punch_apply_date"]
 
 NUMERIC_COLUMNS = ["hours_worked"]
+
+REPEATED_DIGIT_PATTERN = re.compile(r"^(\d)\1{3,}$")
+KNOWN_JUNK_IDS = {"999999", "999951", "TEST2", "CMCRN-3"}
+
+
+def is_junk_employee_id(emp_id):
+    if emp_id is None:
+        return True
+    emp_id = str(emp_id).strip()
+
+    if emp_id in KNOWN_JUNK_IDS:
+        return True
+    if any(char.isalpha() for char in emp_id):
+        return True
+    if "-" in emp_id:
+        return True
+    if REPEATED_DIGIT_PATTERN.match(emp_id):
+        return True
+
+    return False
 
 
 def read_raw_timesheets(engine):
@@ -55,6 +76,18 @@ def clean_timesheets(df):
             f"Dropped {before_count - after_count} timesheet rows with missing client_employee_id"
         )
 
+    before_junk_filter = len(df)
+    junk_mask = df["client_employee_id"].apply(is_junk_employee_id)
+    junk_ids_found = sorted(df.loc[junk_mask, "client_employee_id"].unique())
+    df = df.loc[~junk_mask]
+    after_junk_filter = len(df)
+
+    if before_junk_filter != after_junk_filter:
+        logger.warning(
+            f"Filtered out {before_junk_filter - after_junk_filter} timesheet rows with "
+            f"junk or malformed employee ids: {junk_ids_found}"
+        )
+
     return df
 
 
@@ -72,7 +105,7 @@ def ensure_employee_placeholders(df, engine):
 
     logger.warning(
         f"Found {len(missing_ids)} employee ids in timesheet data not present in "
-        f"staging.employee_staging, inserting placeholder records: {sorted(missing_ids)}"
+        f"staging.employee_staging, inserting placeholder records"
     )
 
     placeholder_records = [
