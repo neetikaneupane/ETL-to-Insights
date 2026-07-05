@@ -52,7 +52,10 @@ def upsert_curated_employees(df, engine):
         "termination_reason", "clinical_level", "is_placeholder",
     ]
 
-    records = df[curated_columns].where(pd.notnull(df[curated_columns]), None).to_dict(orient="records")
+    clean_df = df[curated_columns].astype(object)
+    clean_df = clean_df.where(pd.notnull(clean_df), None)
+
+    records = clean_df.to_dict(orient="records")
 
     if not records:
         logger.warning("No employee records to upsert into curated")
@@ -61,22 +64,30 @@ def upsert_curated_employees(df, engine):
     meta = MetaData(schema="curated")
     employee_table = Table("employee", meta, autoload_with=engine)
 
+    batch_size = 300
+    total_upserted = 0
+
     with engine.begin() as conn:
-        stmt = pg_insert(employee_table).values(records)
-        update_columns = {
-            col.name: stmt.excluded[col.name]
-            for col in employee_table.columns
-            if col.name not in ("client_employee_id", "created_at")
-        }
-        update_columns["updated_at"] = pd.Timestamp.now()
+        for i in range(0, len(records), batch_size):
+            batch = records[i:i + batch_size]
 
-        stmt = stmt.on_conflict_do_update(
-            index_elements=["client_employee_id"],
-            set_=update_columns,
-        )
-        conn.execute(stmt)
+            stmt = pg_insert(employee_table).values(batch)
+            update_columns = {
+                col.name: stmt.excluded[col.name]
+                for col in employee_table.columns
+                if col.name not in ("client_employee_id", "created_at")
+            }
+            update_columns["updated_at"] = pd.Timestamp.now()
 
-    logger.info(f"Upserted {len(records)} employee records into curated.employee")
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["client_employee_id"],
+                set_=update_columns,
+            )
+            conn.execute(stmt)
+            total_upserted += len(batch)
+
+    logger.info(f"Upserted {total_upserted} employee records into curated.employee")
+
 
 
 def run_employee_load():
