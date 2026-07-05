@@ -29,7 +29,7 @@ services:
 
   airflow-postgres:
     image: postgres:15
-    container_name: etl_airflow_postgres
+    container_name: etl_to_insights_airflow_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: airflow
@@ -43,7 +43,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.airflow
     image: etl_airflow_custom:latest
-    container_name: etl_airflow_init
+    container_name: etl_to_insights_airflow_init
     depends_on:
       - airflow-postgres
     environment:
@@ -63,7 +63,7 @@ services:
 
   airflow-webserver:
     image: etl_airflow_custom:latest
-    container_name: etl_airflow_webserver
+    container_name: etl_to_insights_airflow_webserver
     restart: unless-stopped
     depends_on:
       - airflow-init
@@ -93,7 +93,7 @@ services:
 
   airflow-scheduler:
     image: etl_airflow_custom:latest
-    container_name: etl_airflow_scheduler
+    container_name: etl_to_insights_airflow_scheduler
     restart: unless-stopped
     depends_on:
       - airflow-init
