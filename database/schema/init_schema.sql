@@ -138,7 +138,7 @@ CREATE SCHEMA IF NOT EXISTS curated;
 
 CREATE TABLE IF NOT EXISTS curated.employee (
     client_employee_id TEXT PRIMARY KEY,
-    first_name TEXT NOT NULL,
+    first_name TEXT,
     middle_name TEXT,
     last_name TEXT,
     preferred_name TEXT,
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS curated.employee (
     department_id TEXT,
     department_name TEXT,
     dob DATE,
-    hire_date DATE NOT NULL,
+    hire_date DATE,
     recent_hire_date DATE,
     anniversary_date DATE,
     term_date DATE,
@@ -170,9 +170,10 @@ CREATE TABLE IF NOT EXISTS curated.employee (
     cell_phone TEXT,
     work_phone TEXT,
     scheduled_weekly_hour NUMERIC,
-    active_status BOOLEAN NOT NULL,
+    active_status BOOLEAN,
     termination_reason TEXT,
     clinical_level TEXT,
+    is_placeholder BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
     updated_at TIMESTAMP NOT NULL DEFAULT now()
 );
