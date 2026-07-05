@@ -97,12 +97,7 @@ def upsert_to_staging(df, engine):
         logger.warning("No employee records to upsert into staging")
         return
 
-    metadata = pd.io.sql.SQLTable(
-        "employee_staging", pd.io.sql.SQLDatabase(engine), schema="staging"
-    )
-
     with engine.begin() as conn:
-        table = text("SELECT 1")
         from sqlalchemy import MetaData, Table
 
         meta = MetaData(schema="staging")
