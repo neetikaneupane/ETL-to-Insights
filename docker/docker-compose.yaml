@@ -11,5 +11,22 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ../database/schema/init_schema.sql:/docker-entrypoint-initdb.d/init_schema.sql
 
+  minio:
+    image: minio/minio:latest
+    container_name: etl_to_insights_minio
+    restart: unless-stopped
+    env_file:
+      - ../config/.env
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
+  minio_data:
