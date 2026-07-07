@@ -3,16 +3,20 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from etl.utils.db_connection import load_config
 
-SECRET_KEY = "change-this-secret-key-in-production"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+config = load_config()
+auth_config = config["auth"]
+
+SECRET_KEY = auth_config["jwt_secret_key"]
+ALGORITHM = auth_config["jwt_algorithm"]
+ACCESS_TOKEN_EXPIRE_MINUTES = int(auth_config["jwt_expire_minutes"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD_HASH = pwd_context.hash("changeme123")
+ADMIN_USERNAME = auth_config["admin_username"]
+ADMIN_PASSWORD_HASH = pwd_context.hash(auth_config["admin_password"])
 
 
 def verify_password(plain_password, hashed_password):

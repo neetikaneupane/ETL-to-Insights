@@ -34,3 +34,10 @@ logging:
   level: INFO
   log_dir: logs/
   log_file: etl_pipeline.log
+
+auth:
+  jwt_secret_key: ${JWT_SECRET_KEY}
+  jwt_algorithm: ${JWT_ALGORITHM}
+  jwt_expire_minutes: ${JWT_EXPIRE_MINUTES}
+  admin_username: ${ADMIN_USERNAME}
+  admin_password: ${ADMIN_PASSWORD}
