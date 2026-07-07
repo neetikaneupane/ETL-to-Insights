@@ -4,3 +4,8 @@ pyyaml
 python-dotenv
 pandas 
 minio
+fastapi
+uvicorn
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
