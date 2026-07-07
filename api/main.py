@@ -1,6 +1,9 @@
 from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from api.routers import employee
+
+
 
 from api.auth.auth import (
     authenticate_user,
@@ -33,3 +36,5 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+app.include_router(employee.router)
