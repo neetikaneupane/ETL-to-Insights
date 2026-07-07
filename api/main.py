@@ -1,7 +1,7 @@
 from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from api.routers import employee, timesheet
+from api.routers import employee, timesheet, analytics
 
 from api.auth.auth import (
     authenticate_user,
@@ -37,3 +37,4 @@ def health_check():
 
 app.include_router(employee.router)
 app.include_router(timesheet.router)
+app.include_router(analytics.router)
