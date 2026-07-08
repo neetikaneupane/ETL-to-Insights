@@ -101,8 +101,12 @@ async function loadTurnover() {
 async function loadTenure() {
   const data = await fetchJSON("/analytics/tenure-by-department");
   const top = data.slice(0, 15).reverse();
-  const y = top.map((d) => d.department_name);
+
+  const shortLabel = (name) => (name.length > 28 ? name.slice(0, 26) + "…" : name);
+
+  const y = top.map((d) => shortLabel(d.department_name));
   const x = top.map((d) => d.avg_tenure_years);
+  const fullNames = top.map((d) => d.department_name);
 
   Plotly.newPlot(
     "chart-tenure",
@@ -111,8 +115,15 @@ async function loadTenure() {
       type: "bar",
       orientation: "h",
       marker: { color: "#6b5b95" },
+      customdata: fullNames,
+      hovertemplate: "%{customdata}<br>%{x} years<extra></extra>",
     }],
-    { ...PLOTLY_LAYOUT_BASE, margin: { t: 10, r: 20, b: 40, l: 220 }, xaxis: { title: "avg years" } },
+    {
+      ...PLOTLY_LAYOUT_BASE,
+      margin: { t: 10, r: 20, b: 40, l: 230 },
+      xaxis: { title: "avg years" },
+      yaxis: { automargin: true },
+    },
     PLOTLY_CONFIG
   );
   log(`tenure: showing top ${top.length} departments`, "ok");
