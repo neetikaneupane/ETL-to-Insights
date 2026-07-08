@@ -53,7 +53,7 @@ async function fetchJSON(path) {
 const PLOTLY_LAYOUT_BASE = {
   paper_bgcolor: "rgba(0,0,0,0)",
   plot_bgcolor: "rgba(0,0,0,0)",
-  font: { family: "JetBrains Mono, monospace", color: "#1c1c1c", size: 11 },
+  font: { family: "Poppins, sans-serif", color: "#1c1c1c", size: 12 },
   margin: { t: 10, r: 20, b: 40, l: 50 },
 };
 
@@ -100,9 +100,13 @@ async function loadTurnover() {
 
 async function loadTenure() {
   const data = await fetchJSON("/analytics/tenure-by-department");
-  const top = data.slice(0, 15).reverse();
+  const top = data.slice(0, 12).reverse();
 
-  const shortLabel = (name) => (name.length > 28 ? name.slice(0, 26) + "…" : name);
+  const shortLabel = (name) => {
+    const parts = name.split("-");
+    const cleaned = parts.length > 1 ? parts.slice(1).join("-") : name;
+    return cleaned.length > 30 ? cleaned.slice(0, 28) + "…" : cleaned;
+  };
 
   const y = top.map((d) => shortLabel(d.department_name));
   const x = top.map((d) => d.avg_tenure_years);
@@ -114,15 +118,20 @@ async function loadTenure() {
       x, y,
       type: "bar",
       orientation: "h",
-      marker: { color: "#6b5b95" },
+      marker: { color: "#8577ab" },
       customdata: fullNames,
       hovertemplate: "%{customdata}<br>%{x} years<extra></extra>",
+      text: x.map((v) => v.toFixed(1) + "y"),
+      textposition: "outside",
+      textfont: { size: 11, color: "#6b5b95" },
     }],
     {
       ...PLOTLY_LAYOUT_BASE,
-      margin: { t: 10, r: 20, b: 40, l: 230 },
-      xaxis: { title: "avg years" },
-      yaxis: { automargin: true },
+      margin: { t: 10, r: 50, b: 30, l: 210 },
+      xaxis: { title: "", showgrid: true, gridcolor: "#e8e3d8", zeroline: false },
+      yaxis: { automargin: true, showgrid: false },
+      bargap: 0.35,
+      height: 380,
     },
     PLOTLY_CONFIG
   );
