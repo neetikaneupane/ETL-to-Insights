@@ -82,7 +82,13 @@ async function loadHeadcount() {
 
 async function loadTurnover() {
   const data = await fetchJSON("/analytics/turnover");
-  const x = data.map((d) => d.termination_month);
+
+  const formatMonth = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  };
+
+  const x = data.map((d) => formatMonth(d.termination_month));
   const y = data.map((d) => d.terminations);
 
   Plotly.newPlot(
@@ -93,13 +99,12 @@ async function loadTurnover() {
       marker: { color: "#c17a67" },
       text: y,
       textposition: "outside",
-      textfont: { size: 11, color: "#b3543f" },
-      width: 1000 * 60 * 60 * 24 * 20,
+      textfont: { family: "Poppins, sans-serif", size: 12, color: "#b3543f" },
     }],
     {
       ...PLOTLY_LAYOUT_BASE,
+      xaxis: { type: "category", showgrid: false },
       yaxis: { title: "terminations", showgrid: true, gridcolor: "#e8e3d8", zeroline: false, dtick: 1 },
-      xaxis: { showgrid: false },
       bargap: 0.5,
       height: 300,
     },
