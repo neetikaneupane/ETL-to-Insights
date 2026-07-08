@@ -90,9 +90,19 @@ async function loadTurnover() {
     [{
       x, y,
       type: "bar",
-      marker: { color: "#b3543f" },
+      marker: { color: "#c17a67" },
+      text: y,
+      textposition: "outside",
+      textfont: { size: 11, color: "#b3543f" },
+      width: 1000 * 60 * 60 * 24 * 20,
     }],
-    { ...PLOTLY_LAYOUT_BASE, yaxis: { title: "terminations" } },
+    {
+      ...PLOTLY_LAYOUT_BASE,
+      yaxis: { title: "terminations", showgrid: true, gridcolor: "#e8e3d8", zeroline: false, dtick: 1 },
+      xaxis: { showgrid: false },
+      bargap: 0.5,
+      height: 300,
+    },
     PLOTLY_CONFIG
   );
   log(`turnover: loaded ${data.length} termination months`, "ok");
@@ -147,18 +157,29 @@ async function loadWorkingHours() {
 
 async function loadAttendance() {
   const data = await fetchJSON("/analytics/attendance-summary");
+  const labels = ["Late Arrival", "Early Departure", "Overtime"];
+  const values = [data.late_arrival_rate, data.early_departure_rate, data.overtime_rate];
+  const colors = ["#4a6fa5", "#c17a67", "#5c8a6a"];
 
   Plotly.newPlot(
     "chart-attendance",
     [{
-      x: ["Late Arrival", "Early Departure", "Overtime"],
-      y: [data.late_arrival_rate, data.early_departure_rate, data.overtime_rate],
+      x: labels,
+      y: values,
       type: "bar",
-      marker: { color: ["#4a6fa5", "#b3543f", "#4f7a5c"] },
-      text: [data.late_arrival_rate, data.early_departure_rate, data.overtime_rate].map((v) => v + "%"),
+      marker: { color: colors },
+      text: values.map((v) => v + "%"),
       textposition: "outside",
+      textfont: { size: 13 },
+      width: 0.5,
     }],
-    { ...PLOTLY_LAYOUT_BASE, yaxis: { title: "% of assessable punches" } },
+    {
+      ...PLOTLY_LAYOUT_BASE,
+      yaxis: { title: "% of assessable punches", showgrid: true, gridcolor: "#e8e3d8", zeroline: false },
+      xaxis: { showgrid: false },
+      bargap: 0.5,
+      height: 320,
+    },
     PLOTLY_CONFIG
   );
   log("attendance: late arrival, early departure, overtime rates loaded", "ok");
@@ -179,10 +200,19 @@ async function loadRollingHours() {
       {
         x, y: data.map((d) => d.rolling_avg_hours_30day),
         type: "bar", name: "30-day avg",
-        marker: { color: "#6b5b95" },
+        marker: { color: "#8577ab" },
       },
     ],
-    { ...PLOTLY_LAYOUT_BASE, barmode: "group", yaxis: { title: "hours" }, legend: { orientation: "h", y: -0.2 } },
+    {
+      ...PLOTLY_LAYOUT_BASE,
+      barmode: "group",
+      yaxis: { title: "hours", showgrid: true, gridcolor: "#e8e3d8", zeroline: false },
+      xaxis: { showgrid: false, tickangle: -45 },
+      bargap: 0.2,
+      bargroupgap: 0.1,
+      legend: { orientation: "h", y: -0.25, font: { size: 11 } },
+      height: 360,
+    },
     PLOTLY_CONFIG
   );
   log(`rolling hours: showing ${data.length} employees`, "ok");
