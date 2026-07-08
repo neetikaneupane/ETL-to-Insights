@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 :root {
   --bg-cream: #f2efe9;
   --bg-dark: #14141a;
@@ -12,6 +14,7 @@
   --accent-green: #4f7a5c;
   --accent-blue: #4a6fa5;
   --accent-purple: #6b5b95;
+  --font-main: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --font-serif: Georgia, "Times New Roman", serif;
 }
@@ -22,7 +25,7 @@
 
 body {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-main);
   background: var(--bg-cream);
   color: var(--text-dark);
 }
