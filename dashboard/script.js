@@ -212,11 +212,11 @@ async function loadRollingHours() {
       ...PLOTLY_LAYOUT_BASE,
       barmode: "group",
       yaxis: { title: "hours", showgrid: true, gridcolor: "#e8e3d8", zeroline: false },
-      xaxis: { showgrid: false, tickangle: -45 },
+      xaxis: { type: "category", showgrid: false, tickangle: -45 },
       bargap: 0.2,
-      bargroupgap: 0.1,
-      legend: { orientation: "h", y: -0.25, font: { size: 11 } },
-      height: 360,
+      bargroupgap: 0.15,
+      legend: { orientation: "h", y: -0.3, font: { size: 11 } },
+      height: 380,
     },
     PLOTLY_CONFIG
   );
