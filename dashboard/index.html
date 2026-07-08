@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>etl-to-insights / dashboard</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+</head>
+<body>
+
+<div id="login-overlay">
+  <div id="login-box">
+    <div class="login-title">etl-to-insights <span class="dim">/ dashboard</span></div>
+    <p class="dim small">Sign in to load workforce analytics</p>
+    <input type="text" id="login-username" placeholder="username" value="admin">
+    <input type="password" id="login-password" placeholder="password" value="changeme123">
+    <button id="login-button">authorize</button>
+    <p id="login-error" class="error-text"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+
+  <div class="topbar">
+    <div class="brand">etl-to-insights<span class="dim">/dashboard</span></div>
+    <div class="topbar-right">
+      <span id="status-pill" class="pill">connected</span>
+      <button id="logout-button" class="link-button">logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <section class="card" id="section-headcount">
+      <div class="card-header">
+        <h2>01. Active Headcount Over Time</h2>
+        <p class="dim">Monthly workforce size based on hire and termination dates</p>
+      </div>
+      <div id="chart-headcount" class="chart"></div>
+    </section>
+
+    <section class="card" id="section-turnover">
+      <div class="card-header">
+        <h2>02. Turnover Trend</h2>
+        <p class="dim">Employee terminations by month</p>
+      </div>
+      <div id="chart-turnover" class="chart"></div>
+    </section>
+
+    <section class="card" id="section-tenure">
+      <div class="card-header">
+        <h2>03. Average Tenure by Department</h2>
+        <p class="dim">Top departments by average years of service</p>
+      </div>
+      <div id="chart-tenure" class="chart"></div>
+    </section>
+
+    <section class="card" id="section-hours">
+      <div class="card-header">
+        <h2>04. Average Working Hours per Employee</h2>
+        <p class="dim">Company-wide daily and weekly averages</p>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-label">avg hours / day</div>
+          <div class="stat-value" id="stat-daily-hours">--</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">avg hours / week</div>
+          <div class="stat-value" id="stat-weekly-hours">--</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="section-attendance">
+      <div class="card-header">
+        <h2>05-07. Late Arrivals, Early Departures &amp; Overtime</h2>
+        <p class="dim">Percentage of assessable punches in each category</p>
+      </div>
+      <div id="chart-attendance" class="chart"></div>
+    </section>
+
+    <section class="card" id="section-rolling">
+      <div class="card-header">
+        <h2>08. Rolling Average Working Hours</h2>
+        <p class="dim">7-day vs 30-day rolling average, top 15 employees by recent activity</p>
+      </div>
+      <div id="chart-rolling" class="chart"></div>
+    </section>
+
+    <section class="card" id="section-attrition">
+      <div class="card-header">
+        <h2>09. Early Attrition Rate</h2>
+        <p class="dim">Proportion of employees who left within 90 days or 6 months of hire</p>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-label">total employees</div>
+          <div class="stat-value" id="stat-total-employees">--</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">left within 90 days</div>
+          <div class="stat-value" id="stat-attrition-90">--</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">left within 6 months</div>
+          <div class="stat-value" id="stat-attrition-6mo">--</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="output-panel">
+    <div class="output-header">
+      <span>output</span>
+      <span id="output-state" class="dim">ready</span>
+    </div>
+    <div class="output-body" id="output-log"></div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
