@@ -179,7 +179,8 @@ async function loadAttendance() {
     }],
     {
       ...PLOTLY_LAYOUT_BASE,
-      yaxis: { title: "% of assessable punches", showgrid: true, gridcolor: "#e8e3d8", zeroline: false },
+      margin: { t: 40, r: 20, b: 40, l: 50 },
+      yaxis: { title: "% of assessable punches", showgrid: true, gridcolor: "#e8e3d8", zeroline: false, range: [0, 38] },
       xaxis: { type: "category", showgrid: false },
       bargap: 0.5,
       height: 320,
