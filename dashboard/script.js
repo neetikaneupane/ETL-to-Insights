@@ -83,13 +83,27 @@ async function loadHeadcount() {
 async function loadTurnover() {
   const data = await fetchJSON("/analytics/turnover");
 
-  const formatMonth = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-  };
+  const formatMonth = (d) => d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
-  const x = data.map((d) => formatMonth(d.termination_month));
-  const y = data.map((d) => d.terminations);
+  const parsedDates = data.map((d) => new Date(d.termination_month));
+  const countByMonth = new Map(
+    data.map((d) => [formatMonth(new Date(d.termination_month)), d.terminations])
+  );
+
+  const firstMonth = new Date(Math.min(...parsedDates));
+  const lastMonth = new Date(Math.max(...parsedDates));
+
+  const allMonths = [];
+  const cursor = new Date(firstMonth.getFullYear(), firstMonth.getMonth(), 1);
+  const end = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
+
+  while (cursor <= end) {
+    allMonths.push(formatMonth(cursor));
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  const x = allMonths;
+  const y = allMonths.map((m) => countByMonth.get(m) || 0);
 
   Plotly.newPlot(
     "chart-turnover",
@@ -97,20 +111,21 @@ async function loadTurnover() {
       x, y,
       type: "bar",
       marker: { color: "#c17a67" },
-      text: y,
+      text: y.map((v) => (v > 0 ? v : "")),
       textposition: "outside",
-      textfont: { family: "Poppins, sans-serif", size: 12, color: "#b3543f" },
+      textfont: { family: "Poppins, sans-serif", size: 12, color: "#1c1c1c" },
     }],
     {
       ...PLOTLY_LAYOUT_BASE,
+      margin: { t: 40, r: 20, b: 40, l: 50 },
       xaxis: { type: "category", showgrid: false },
-      yaxis: { title: "terminations", showgrid: true, gridcolor: "#e8e3d8", zeroline: false, dtick: 1 },
+      yaxis: { title: "terminations", showgrid: true, gridcolor: "#e8e3d8", zeroline: false, dtick: 1, range: [0, 2.5] },
       bargap: 0.5,
       height: 300,
     },
     PLOTLY_CONFIG
   );
-  log(`turnover: loaded ${data.length} termination months`, "ok");
+  log(`turnover: showing full range ${allMonths[0]} to ${allMonths[allMonths.length - 1]}`, "ok");
 }
 
 async function loadTenure() {
