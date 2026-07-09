@@ -178,6 +178,27 @@ Charts: line (headcount), bar (turnover, attendance, rolling), horizontal bar (t
 - PostgreSQL 16
 - Docker (optional, for containerized setup)
 
+> **Sample data note:** The CSV source files in `data/raw/` are gitignored and not distributed with the repo. You need to provide your own pipe-delimited CSV files for employees and timesheets in `data/raw/employee/` and `data/raw/timesheet/` respectively. See [Data Format](#data-format) below for the expected schema.
+
+### Data Format
+
+Source CSV files are pipe-delimited (`|`) with UTF-8 encoding. Place files in:
+
+| Entity | Directory |
+|--------|-----------|
+| Employees | `data/raw/employee/*.csv` |
+| Timesheets | `data/raw/timesheet/*.csv` |
+
+Files are read in alphabetical order. Null values can be represented as `""`, `[NULL]`, or `NULL`.
+
+**Employee CSV** must include these columns:
+`client_employee_id | first_name | last_name | department_id | department_name | hire_date | term_date` (any additional columns from the source system are accepted and passed through).
+
+**Timesheet CSV** must include these columns:
+`client_employee_id | hours_worked | punch_apply_date | punch_in_datetime | punch_out_datetime | scheduled_start_datetime | scheduled_end_datetime` (additional columns pass through).
+
+See `etl/extract/local_extractor.py` for the full list of columns read from each file type.
+
 ### Quick Start (Local)
 
 ```bash
