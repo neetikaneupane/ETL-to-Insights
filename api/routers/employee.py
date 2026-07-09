@@ -16,7 +16,7 @@ def get_employee_table(conn: Connection):
     return Table("employee_staging", meta, autoload_with=conn)
 
 
-@router.post("/", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 def create_employee(
     employee: EmployeeCreate,
     conn: Connection = Depends(get_db),
@@ -46,7 +46,7 @@ def create_employee(
     return result._mapping
 
 
-@router.get("/", response_model=List[EmployeeResponse])
+@router.get("", response_model=List[EmployeeResponse])
 def list_employees(
     department_name: Optional[str] = Query(None),
     active_status: Optional[bool] = Query(None),

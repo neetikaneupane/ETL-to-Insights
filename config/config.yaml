@@ -40,4 +40,4 @@ auth:
   jwt_algorithm: ${JWT_ALGORITHM}
   jwt_expire_minutes: ${JWT_EXPIRE_MINUTES}
   admin_username: ${ADMIN_USERNAME}
-  admin_password: ${ADMIN_PASSWORD}
+  admin_password_hash: ${ADMIN_PASSWORD_HASH}

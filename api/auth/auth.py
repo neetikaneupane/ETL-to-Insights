@@ -16,7 +16,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 ADMIN_USERNAME = auth_config["admin_username"]
-ADMIN_PASSWORD_HASH = pwd_context.hash(auth_config["admin_password"])
+ADMIN_PASSWORD_HASH = auth_config["admin_password_hash"]
 
 
 def verify_password(plain_password, hashed_password):

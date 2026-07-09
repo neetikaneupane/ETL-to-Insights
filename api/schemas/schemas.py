@@ -4,9 +4,9 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class EmployeeBase(BaseModel):
-    first_name: str
+    first_name: Optional[str] = None
     middle_name: Optional[str] = None
-    last_name: str
+    last_name: Optional[str] = None
     preferred_name: Optional[str] = None
     job_code: Optional[str] = None
     job_title: Optional[str] = None
@@ -14,9 +14,9 @@ class EmployeeBase(BaseModel):
     organization_id: Optional[str] = None
     organization_name: Optional[str] = None
     department_id: Optional[str] = None
-    department_name: str
+    department_name: Optional[str] = None
     dob: Optional[date] = None
-    hire_date: date
+    hire_date: Optional[date] = None
     recent_hire_date: Optional[date] = None
     anniversary_date: Optional[date] = None
     term_date: Optional[date] = None

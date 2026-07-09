@@ -16,7 +16,7 @@ def get_timesheet_table(conn: Connection):
     return Table("timesheet_staging", meta, autoload_with=conn)
 
 
-@router.get("/", response_model=List[TimesheetResponse])
+@router.get("", response_model=List[TimesheetResponse])
 def list_timesheets(
     client_employee_id: Optional[str] = Query(None),
     start_date: Optional[date] = Query(None),
