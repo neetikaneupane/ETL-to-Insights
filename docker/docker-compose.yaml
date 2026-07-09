@@ -91,6 +91,19 @@ services:
       - "8081:8080"
     command: webserver
 
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: etl_api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - ../config/.env
+    ports:
+      - "8000:8000"
+
   airflow-scheduler:
     image: etl_airflow_custom:latest
     container_name: etl_to_insights_airflow_scheduler

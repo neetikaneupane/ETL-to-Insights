@@ -12,8 +12,8 @@ router = APIRouter(prefix="/timesheets", tags=["timesheets"])
 
 
 def get_timesheet_table(conn: Connection):
-    meta = MetaData(schema="staging")
-    return Table("timesheet_staging", meta, autoload_with=conn)
+    meta = MetaData(schema="curated")
+    return Table("timesheet", meta, autoload_with=conn)
 
 
 @router.get("", response_model=List[TimesheetResponse])

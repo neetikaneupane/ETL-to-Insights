@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = new URLSearchParams(window.location.search).get("api") || "http://localhost:8000";
 let authToken = null;
 
 const loginOverlay = document.getElementById("login-overlay");

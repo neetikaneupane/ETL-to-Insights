@@ -12,8 +12,8 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 
 
 def get_employee_table(conn: Connection):
-    meta = MetaData(schema="staging")
-    return Table("employee_staging", meta, autoload_with=conn)
+    meta = MetaData(schema="curated")
+    return Table("employee", meta, autoload_with=conn)
 
 
 @router.post("", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
@@ -34,6 +34,12 @@ def create_employee(
         )
 
     data = employee.model_dump()
+    data["full_name"] = " ".join(filter(None, [employee.first_name, employee.last_name])) or employee.client_employee_id
+    data["is_placeholder"] = False
+    if employee.hire_date:
+        data["tenure_days"] = (datetime.utcnow().date() - employee.hire_date).days
+    else:
+        data["tenure_days"] = 0
     data["created_at"] = datetime.utcnow()
     data["updated_at"] = datetime.utcnow()
 
@@ -111,6 +117,11 @@ def update_employee(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No fields provided to update",
         )
+
+    if "first_name" in update_data or "last_name" in update_data:
+        first = update_data.get("first_name", existing._mapping.get("first_name"))
+        last = update_data.get("last_name", existing._mapping.get("last_name"))
+        update_data["full_name"] = " ".join(filter(None, [first, last])) or existing._mapping["client_employee_id"]
 
     update_data["updated_at"] = datetime.utcnow()
 

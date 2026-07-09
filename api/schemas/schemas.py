@@ -81,6 +81,9 @@ class EmployeeUpdate(BaseModel):
 
 class EmployeeResponse(EmployeeBase):
     client_employee_id: str
+    full_name: Optional[str] = None
+    tenure_days: Optional[int] = None
+    is_placeholder: Optional[bool] = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
