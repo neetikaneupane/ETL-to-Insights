@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from sqlalchemy import MetaData, Table
+from sqlalchemy import MetaData, Table, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from etl.utils.db_connection import get_engine
 from etl.utils.logger import get_logger
@@ -137,6 +137,9 @@ def load_to_staging(df, engine):
     ]
 
     insert_df = df[staging_columns].where(pd.notnull(df[staging_columns]), None)
+
+    with engine.begin() as conn:
+        conn.execute(text("TRUNCATE TABLE staging.timesheet_staging RESTART IDENTITY CASCADE"))
 
     insert_df.to_sql(
         "timesheet_staging",

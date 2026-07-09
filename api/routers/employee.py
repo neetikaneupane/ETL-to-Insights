@@ -7,7 +7,9 @@ from sqlalchemy.engine import Connection
 from api.dependencies import get_db
 from api.auth.auth import get_current_user
 from api.schemas.schemas import EmployeeCreate, EmployeeUpdate, EmployeeResponse
+from etl.utils.logger import get_logger
 
+logger = get_logger(__name__)
 router = APIRouter(prefix="/employees", tags=["employees"])
 
 
@@ -46,6 +48,7 @@ def create_employee(
     conn.execute(insert(table).values(**data))
     conn.commit()
 
+    logger.info(f"Created employee {employee.client_employee_id}")
     result = conn.execute(
         select(table).where(table.c.client_employee_id == employee.client_employee_id)
     ).first()
@@ -71,6 +74,7 @@ def list_employees(
 
     query = query.limit(limit).offset(offset)
     results = conn.execute(query).all()
+    logger.info(f"Listed {len(results)} employees (dept={department_name}, active={active_status})")
     return [row._mapping for row in results]
 
 
@@ -132,6 +136,7 @@ def update_employee(
     )
     conn.commit()
 
+    logger.info(f"Updated employee {employee_id}: {list(update_data.keys())}")
     result = conn.execute(
         select(table).where(table.c.client_employee_id == employee_id)
     ).first()
@@ -161,4 +166,5 @@ def delete_employee(
         .values(active_status=False, term_date=datetime.utcnow().date(), updated_at=datetime.utcnow())
     )
     conn.commit()
+    logger.info(f"Soft-deleted employee {employee_id}")
     return None

@@ -4,7 +4,9 @@ from sqlalchemy.engine import Connection
 
 from api.dependencies import get_db
 from api.auth.auth import get_current_user
+from etl.utils.logger import get_logger
 
+logger = get_logger(__name__)
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
@@ -34,7 +36,9 @@ def active_headcount(conn: Connection = Depends(get_db), current_user: str = Dep
         GROUP BY as_of_date
         ORDER BY as_of_date
     """)
-    return rows_to_dicts(conn.execute(query))
+    result = rows_to_dicts(conn.execute(query))
+    logger.info(f"Headcount: {len(result)} months")
+    return result
 
 
 @router.get("/turnover")
@@ -48,7 +52,9 @@ def turnover_trend(conn: Connection = Depends(get_db), current_user: str = Depen
         GROUP BY termination_month
         ORDER BY termination_month
     """)
-    return rows_to_dicts(conn.execute(query))
+    result = rows_to_dicts(conn.execute(query))
+    logger.info(f"Turnover: {len(result)} months")
+    return result
 
 
 @router.get("/tenure-by-department")
@@ -63,7 +69,9 @@ def tenure_by_department(conn: Connection = Depends(get_db), current_user: str =
         GROUP BY department_name
         ORDER BY avg_tenure_years DESC
     """)
-    return rows_to_dicts(conn.execute(query))
+    result = rows_to_dicts(conn.execute(query))
+    logger.info(f"Tenure by department: {len(result)} departments")
+    return result
 
 
 @router.get("/working-hours-summary")
@@ -74,7 +82,9 @@ def working_hours_summary(conn: Connection = Depends(get_db), current_user: str 
         FROM curated.timesheet
         WHERE hours_worked IS NOT NULL
     """)
-    daily = rows_to_dicts(conn.execute(query))[0]
+    daily = rows_to_dicts(conn.execute(query))
+    if not daily:
+        return {"overall_avg_hours_per_day": 0, "overall_avg_hours_per_week": 0}
 
     query_weekly = text("""
         WITH weekly_hours AS (
@@ -87,9 +97,13 @@ def working_hours_summary(conn: Connection = Depends(get_db), current_user: str 
         SELECT ROUND(AVG(total_hours_that_week), 2) AS overall_avg_hours_per_week
         FROM weekly_hours
     """)
-    weekly = rows_to_dicts(conn.execute(query_weekly))[0]
+    weekly = rows_to_dicts(conn.execute(query_weekly))
+    if not weekly:
+        return {"overall_avg_hours_per_day": daily[0]["overall_avg_hours_per_day"], "overall_avg_hours_per_week": 0}
 
-    return {**daily, **weekly}
+    result_summary = {**daily[0], **weekly[0]}
+    logger.info(f"Working hours summary: {result_summary}")
+    return result_summary
 
 
 @router.get("/attendance-summary")
@@ -101,7 +115,11 @@ def attendance_summary(conn: Connection = Depends(get_db), current_user: str = D
             ROUND(100.0 * COUNT(*) FILTER (WHERE is_overtime = true) / NULLIF(COUNT(*) FILTER (WHERE is_overtime IS NOT NULL), 0), 2) AS overtime_rate
         FROM curated.timesheet
     """)
-    return rows_to_dicts(conn.execute(query))[0]
+    result = rows_to_dicts(conn.execute(query))
+    if not result:
+        return {"late_arrival_rate": 0, "early_departure_rate": 0, "overtime_rate": 0}
+    logger.info(f"Attendance summary: late={result[0]['late_arrival_rate']}% early={result[0]['early_departure_rate']}% overtime={result[0]['overtime_rate']}%")
+    return result[0]
 
 
 @router.get("/rolling-hours-top")
@@ -125,7 +143,9 @@ def rolling_hours_top(conn: Connection = Depends(get_db), current_user: str = De
         ORDER BY client_employee_id, punch_apply_date DESC
         LIMIT 15
     """)
-    return rows_to_dicts(conn.execute(query))
+    result = rows_to_dicts(conn.execute(query))
+    logger.info(f"Rolling hours top: {len(result)} employees")
+    return result
 
 
 @router.get("/early-attrition")
@@ -138,4 +158,7 @@ def early_attrition(conn: Connection = Depends(get_db), current_user: str = Depe
         FROM curated.employee
         WHERE is_placeholder = false AND hire_date IS NOT NULL
     """)
-    return rows_to_dicts(conn.execute(query))[0]
+    result = rows_to_dicts(conn.execute(query))
+    if not result:
+        return {"total_employees": 0, "left_within_90_days": 0, "left_within_6_months": 0}
+    return result[0]

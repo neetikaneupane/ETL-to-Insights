@@ -7,7 +7,9 @@ from sqlalchemy.engine import Connection
 from api.dependencies import get_db
 from api.auth.auth import get_current_user
 from api.schemas.schemas import TimesheetResponse
+from etl.utils.logger import get_logger
 
+logger = get_logger(__name__)
 router = APIRouter(prefix="/timesheets", tags=["timesheets"])
 
 
@@ -38,6 +40,7 @@ def list_timesheets(
 
     query = query.order_by(table.c.punch_apply_date.desc()).limit(limit).offset(offset)
     results = conn.execute(query).all()
+    logger.info(f"Listed {len(results)} timesheets (employee={client_employee_id}, date_range={start_date} to {end_date})")
     return [row._mapping for row in results]
 
 
@@ -63,6 +66,7 @@ def get_employee_timesheets(
     results = conn.execute(query).all()
 
     if not results:
+        logger.info(f"No timesheets found for employee {employee_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No timesheet entries found for employee {employee_id}",
