@@ -39,6 +39,8 @@ End-to-end ETL pipeline with analytics generation, REST API, and interactive das
 | **Gold** (curated) | `curated` | Business-ready with derived metrics: `tenure_days`, `full_name`, `is_late_arrival`, `is_early_departure`, `is_overtime`, `is_placeholder` |
 | **Quality** | `quality` | Automated check results for data integrity monitoring |
 
+Staging and curated tables enforce **CHECK constraints** at the database level (`hours_worked >= 0`, `punch_out_datetime > punch_in_datetime`, `tenure_days >= 0`, `term_date >= hire_date`, etc.) for data integrity beyond application-level validation.
+
 ## ETL Pipeline
 
 ### Extract
@@ -70,7 +72,7 @@ Supports two modes, configured via `config/config.yaml` → `storage.source`:
 Airflow DAG (`dags/etl_pipeline_dag.py`) with task dependencies:
 
 ```
-extract → transform_employee → transform_timesheet → load_employee → load_timesheet → quality_check
+extract → transform_employee → transform_timesheet → load_employee → load_timesheet → quality_check → generate_report
 ```
 
 Each task has retry (3 attempts, 2 min apart). Can also run standalone:
@@ -81,11 +83,12 @@ python etl/transform/employee_transform.py
 python etl/transform/timesheet_transform.py
 python etl/load/loader.py
 python etl/quality_checks/validation.py
+python -m etl.reporting.pipeline_report
 ```
 
 ### Quality Checks
 
-Seven automated checks run at pipeline end:
+Seven automated checks run at pipeline end. On failure, **diagnostic details** are captured (e.g., which employee IDs are duplicated, which rows have inverted dates) and stored in the `quality.check_results` table and JSON report.
 
 | Check | Severity | Description |
 |-------|----------|-------------|
@@ -97,7 +100,19 @@ Seven automated checks run at pipeline end:
 | Missing schedule % | warning | Percentage of timesheets without schedule data |
 | Placeholder ratio % | warning | Percentage of placeholder employee records |
 
-Reports saved to `docs/quality_reports/` as JSON and logged to `quality.check_results` table.
+Results saved to `quality.check_results` table and JSON reports in `docs/quality_reports/`.
+
+### Pipeline Reports
+
+After quality checks, the DAG generates a pipeline report (`etl/reporting/pipeline_report.py`) in three formats:
+
+| Format | Path | Contents |
+|--------|------|----------|
+| **Markdown** | `docs/pipeline_reports/pipeline_report_*.md` | Row counts per layer, quality check summary, duration |
+| **HTML** | `docs/pipeline_reports/pipeline_report_*.html` | Same, rendered as a styled page |
+| **JSON** | `docs/pipeline_reports/pipeline_report_*.json` | Machine-readable structured data |
+
+Can also run standalone: `python -m etl.reporting.pipeline_report`
 
 ## Analytics (9 KPIs)
 
@@ -299,11 +314,14 @@ All configuration in `config/config.yaml` with environment variable expansion vi
 │   ├── models/            # SQLAlchemy ORM models
 │   └── schema/            # DDL init script
 ├── docker/                # Dockerfiles + docker-compose
-├── docs/quality_reports/  # Automated quality check reports
+├── docs/
+│   ├── pipeline_reports/   # Pipeline run reports (HTML, MD, JSON)
+│   └── quality_reports/    # Automated quality check reports
 ├── etl/
 │   ├── extract/           # Local + MinIO extractors
 │   ├── load/              # Curated load with derived columns
 │   ├── quality_checks/    # Data quality validation
+│   ├── reporting/         # Pipeline report generation (HTML, MD, JSON)
 │   ├── transform/         # Data cleaning + staging
 │   └── utils/             # DB connection, logging
 ├── logs/                  # Pipeline logs
