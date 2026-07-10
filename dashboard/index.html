@@ -14,7 +14,7 @@
     <div class="login-title">etl-to-insights <span class="dim">/ dashboard</span></div>
     <p class="dim small">Sign in to load workforce analytics</p>
     <input type="text" id="login-username" placeholder="username" value="admin">
-    <input type="password" id="login-password" placeholder="password" value="changeme123">
+    <input type="password" id="login-password" placeholder="password">
     <button id="login-button">authorize</button>
     <p id="login-error" class="error-text"></p>
   </div>
@@ -28,6 +28,28 @@
       <span id="status-pill" class="pill">connected</span>
       <button id="logout-button" class="link-button">logout</button>
     </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Date range</label>
+      <input type="date" id="filter-start">
+      <span class="filter-sep">to</span>
+      <input type="date" id="filter-end">
+    </div>
+    <div class="filter-group">
+      <label>Department</label>
+      <select id="filter-dept">
+        <option value="">All departments</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Employee</label>
+      <input type="text" id="filter-employee" placeholder="Search by name or ID\u2026">
+      <div id="employee-suggestions" class="suggestions hidden"></div>
+    </div>
+    <button id="filter-apply" class="filter-btn">apply filters</button>
+    <button id="filter-reset" class="filter-btn secondary">reset</button>
   </div>
 
   <div class="content">

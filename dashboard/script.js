@@ -1,6 +1,13 @@
 const API_BASE = new URLSearchParams(window.location.search).get("api") || "http://localhost:8000";
 let authToken = null;
 
+const filters = {
+  startDate: "",
+  endDate: "",
+  department: "",
+  employeeId: "",
+};
+
 const loginOverlay = document.getElementById("login-overlay");
 const app = document.getElementById("app");
 const loginButton = document.getElementById("login-button");
@@ -8,6 +15,16 @@ const logoutButton = document.getElementById("logout-button");
 const loginError = document.getElementById("login-error");
 const outputLog = document.getElementById("output-log");
 const statusPill = document.getElementById("status-pill");
+
+const filterStart = document.getElementById("filter-start");
+const filterEnd = document.getElementById("filter-end");
+const filterDept = document.getElementById("filter-dept");
+const filterEmployee = document.getElementById("filter-employee");
+const employeeSuggestions = document.getElementById("employee-suggestions");
+const filterApply = document.getElementById("filter-apply");
+const filterReset = document.getElementById("filter-reset");
+
+let employeeSearchTimeout = null;
 
 function log(message, level = "info") {
   const line = document.createElement("div");
@@ -50,6 +67,23 @@ async function fetchJSON(path) {
   return response.json();
 }
 
+function buildQuery(base, params) {
+  const qs = Object.entries(params)
+    .filter(([, v]) => v !== "" && v !== null && v !== undefined)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&");
+  return qs ? `${base}?${qs}` : base;
+}
+
+function currentFilterParams() {
+  return {
+    start_date: filters.startDate || undefined,
+    end_date: filters.endDate || undefined,
+    department_name: filters.department || undefined,
+    employee_id: filters.employeeId || undefined,
+  };
+}
+
 const PLOTLY_LAYOUT_BASE = {
   paper_bgcolor: "rgba(0,0,0,0)",
   plot_bgcolor: "rgba(0,0,0,0)",
@@ -60,7 +94,8 @@ const PLOTLY_LAYOUT_BASE = {
 const PLOTLY_CONFIG = { responsive: true, displayModeBar: false };
 
 async function loadHeadcount() {
-  const data = await fetchJSON("/analytics/headcount");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/headcount", params));
   const x = data.map((d) => d.as_of_date);
   const y = data.map((d) => d.active_headcount);
 
@@ -77,22 +112,19 @@ async function loadHeadcount() {
     { ...PLOTLY_LAYOUT_BASE, xaxis: { title: "" }, yaxis: { title: "employees" } },
     PLOTLY_CONFIG
   );
-  log(`headcount: loaded ${data.length} monthly data points`, "ok");
+  log(`headcount: loaded ${data.length} data points`, "ok");
 }
 
 async function loadTurnover() {
-  const data = await fetchJSON("/analytics/turnover");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/turnover", params));
 
   const formatMonth = (d) => d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-
   const parsedDates = data.map((d) => new Date(d.termination_month));
-  const countByMonth = new Map(
-    data.map((d) => [formatMonth(new Date(d.termination_month)), d.terminations])
-  );
+  const countByMonth = new Map(data.map((d) => [formatMonth(new Date(d.termination_month)), d.terminations]));
 
-  const firstMonth = new Date(Math.min(...parsedDates));
-  const lastMonth = new Date(Math.max(...parsedDates));
-
+  const firstMonth = parsedDates.length ? new Date(Math.min(...parsedDates)) : new Date();
+  const lastMonth = parsedDates.length ? new Date(Math.max(...parsedDates)) : new Date();
   const allMonths = [];
   const cursor = new Date(firstMonth.getFullYear(), firstMonth.getMonth(), 1);
   const end = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1);
@@ -125,25 +157,27 @@ async function loadTurnover() {
     },
     PLOTLY_CONFIG
   );
-  log(`turnover: showing full range ${allMonths[0]} to ${allMonths[allMonths.length - 1]}`, "ok");
+  log(`turnover: ${allMonths[0]} to ${allMonths[allMonths.length - 1]}`, "ok");
 }
 
 async function loadTenure() {
-  const data = await fetchJSON("/analytics/tenure-by-department");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/tenure-by-department", params));
   const top = data.slice(0, 12).reverse();
 
   const shortLabel = (name) => {
     const parts = name.split("-");
     const cleaned = parts.length > 1 ? parts.slice(1).join("-") : name;
-    return cleaned.length > 30 ? cleaned.slice(0, 28) + "…" : cleaned;
+    return cleaned.length > 30 ? cleaned.slice(0, 28) + "\u2026" : cleaned;
   };
 
   const y = top.map((d) => shortLabel(d.department_name));
   const x = top.map((d) => d.avg_tenure_years);
   const fullNames = top.map((d) => d.department_name);
 
+  const chart = document.getElementById("chart-tenure");
   Plotly.newPlot(
-    "chart-tenure",
+    chart,
     [{
       x, y,
       type: "bar",
@@ -165,18 +199,29 @@ async function loadTenure() {
     },
     PLOTLY_CONFIG
   );
+  chart.on("plotly_click", function(evt) {
+    if (evt.points && evt.points.length > 0) {
+      const dept = evt.points[0].customdata;
+      filters.department = dept;
+      filterDept.value = dept;
+      log(`drill-down: filtering to department "${dept}"`, "ok");
+      loadAllCharts();
+    }
+  });
   log(`tenure: showing top ${top.length} departments`, "ok");
 }
 
 async function loadWorkingHours() {
-  const data = await fetchJSON("/analytics/working-hours-summary");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/working-hours-summary", params));
   document.getElementById("stat-daily-hours").textContent = data.overall_avg_hours_per_day;
   document.getElementById("stat-weekly-hours").textContent = data.overall_avg_hours_per_week;
   log("working hours: summary loaded", "ok");
 }
 
 async function loadAttendance() {
-  const data = await fetchJSON("/analytics/attendance-summary");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/attendance-summary", params));
   const labels = ["Late Arrival", "Early Departure", "Overtime"];
   const values = [data.late_arrival_rate, data.early_departure_rate, data.overtime_rate];
   const colors = ["#4a6fa5", "#c17a67", "#5c8a6a"];
@@ -202,15 +247,17 @@ async function loadAttendance() {
     },
     PLOTLY_CONFIG
   );
-  log("attendance: late arrival, early departure, overtime rates loaded", "ok");
+  log("attendance: rates loaded", "ok");
 }
 
 async function loadRollingHours() {
-  const data = await fetchJSON("/analytics/rolling-hours-top");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/rolling-hours-top", { ...params, limit: filters.employeeId ? 5 : 15 }));
   const x = data.map((d) => d.client_employee_id);
 
+  const chart = document.getElementById("chart-rolling");
   Plotly.newPlot(
-    "chart-rolling",
+    chart,
     [
       {
         x, y: data.map((d) => d.rolling_avg_hours_7day),
@@ -235,18 +282,121 @@ async function loadRollingHours() {
     },
     PLOTLY_CONFIG
   );
-  log(`rolling hours: showing ${data.length} employees`, "ok");
+  chart.on("plotly_click", function(evt) {
+    if (evt.points && evt.points.length > 0) {
+      const empId = evt.points[0].x;
+      filters.employeeId = empId;
+      filterEmployee.value = empId;
+      log(`drill-down: filtering to employee "${empId}"`, "ok");
+      loadAllCharts();
+    }
+  });
+  log(`rolling hours: ${data.length} employees`, "ok");
 }
 
 async function loadEarlyAttrition() {
-  const data = await fetchJSON("/analytics/early-attrition");
+  const params = currentFilterParams();
+  const data = await fetchJSON(buildQuery("/analytics/early-attrition", params));
   document.getElementById("stat-total-employees").textContent = data.total_employees;
   document.getElementById("stat-attrition-90").textContent = data.left_within_90_days;
   document.getElementById("stat-attrition-6mo").textContent = data.left_within_6_months;
   log("early attrition: summary loaded", "ok");
 }
 
+async function loadDepartments() {
+  try {
+    const depts = await fetchJSON("/analytics/departments");
+    filterDept.innerHTML = '<option value="">All departments</option>';
+    depts.forEach((d) => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      filterDept.appendChild(opt);
+    });
+    log(`departments: ${depts.length} loaded`, "ok");
+  } catch (err) {
+    log(`departments: ${err.message}`, "err");
+  }
+}
+
+function setupEmployeeSearch() {
+  filterEmployee.addEventListener("input", function() {
+    clearTimeout(employeeSearchTimeout);
+    employeeSuggestions.classList.add("hidden");
+
+    const q = this.value.trim();
+    if (q.length < 1) return;
+
+    employeeSearchTimeout = setTimeout(async () => {
+      try {
+        const results = await fetchJSON(`/analytics/employees?q=${encodeURIComponent(q)}&limit=10`);
+        employeeSuggestions.innerHTML = "";
+        if (results.length === 0) {
+          employeeSuggestions.classList.add("hidden");
+          return;
+        }
+        results.forEach((emp) => {
+          const div = document.createElement("div");
+          div.className = "suggestion-item";
+          div.innerHTML = `${emp.client_employee_id} <span class="sug-meta">${emp.full_name} &mdash; ${emp.department_name || ""}</span>`;
+          div.addEventListener("click", function() {
+            filters.employeeId = emp.client_employee_id;
+            filterEmployee.value = `${emp.client_employee_id} (${emp.full_name})`;
+            employeeSuggestions.classList.add("hidden");
+            log(`employee selected: ${emp.client_employee_id}`, "ok");
+            loadAllCharts();
+          });
+          employeeSuggestions.appendChild(div);
+        });
+        employeeSuggestions.classList.remove("hidden");
+      } catch (err) {
+        log(`employee search: ${err.message}`, "err");
+      }
+    }, 200);
+  });
+
+  filterEmployee.addEventListener("blur", function() {
+    setTimeout(() => employeeSuggestions.classList.add("hidden"), 200);
+  });
+
+  filterEmployee.addEventListener("focus", function() {
+    if (employeeSuggestions.children.length > 0) {
+      employeeSuggestions.classList.remove("hidden");
+    }
+  });
+}
+
+function setupFilterButtons() {
+  filterApply.addEventListener("click", function() {
+    filters.startDate = filterStart.value;
+    filters.endDate = filterEnd.value;
+    filters.department = filterDept.value;
+    const empVal = filterEmployee.value.trim();
+    if (empVal && !empVal.includes("(") && empVal !== filters.employeeId) {
+      filters.employeeId = empVal;
+    } else if (!empVal) {
+      filters.employeeId = "";
+    }
+    log("filters applied", "ok");
+    loadAllCharts();
+  });
+
+  filterReset.addEventListener("click", function() {
+    filterStart.value = "";
+    filterEnd.value = "";
+    filterDept.value = "";
+    filterEmployee.value = "";
+    filters.startDate = "";
+    filters.endDate = "";
+    filters.department = "";
+    filters.employeeId = "";
+    log("filters reset", "ok");
+    loadAllCharts();
+  });
+}
+
 async function loadAllCharts() {
+  document.getElementById("output-state").textContent = "loading...";
   const loaders = [
     ["headcount", loadHeadcount],
     ["turnover", loadTurnover],
@@ -264,6 +414,7 @@ async function loadAllCharts() {
       log(`${name}: ${err.message}`, "err");
     }
   }
+  document.getElementById("output-state").textContent = "ready";
 }
 
 loginButton.addEventListener("click", async () => {
@@ -278,6 +429,7 @@ loginButton.addEventListener("click", async () => {
     app.classList.remove("hidden");
     log(`authenticated as ${username}`, "ok");
     statusPill.textContent = "connected";
+    await loadDepartments();
     await loadAllCharts();
   } catch (err) {
     loginError.textContent = err.message;
@@ -291,3 +443,6 @@ logoutButton.addEventListener("click", () => {
   loginOverlay.classList.remove("hidden");
   outputLog.innerHTML = "";
 });
+
+setupEmployeeSearch();
+setupFilterButtons();

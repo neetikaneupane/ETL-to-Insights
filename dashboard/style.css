@@ -171,6 +171,118 @@ body {
   color: var(--text-light);
 }
 
+/* Filter bar */
+
+.filter-bar {
+  background: #fbfaf7;
+  border-bottom: 1px solid var(--border-light);
+  padding: 12px 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.filter-group label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.filter-group input[type="date"],
+.filter-group select,
+.filter-group input[type="text"] {
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text-dark);
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+}
+
+.filter-sep {
+  font-size: 11px;
+  color: var(--text-dim);
+  align-self: center;
+  padding: 0 2px;
+}
+
+.filter-btn {
+  padding: 6px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid var(--accent-blue);
+  background: var(--accent-blue);
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.filter-btn:hover {
+  opacity: 0.9;
+}
+
+.filter-btn.secondary {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border-light);
+}
+
+.filter-btn.secondary:hover {
+  color: var(--text-dark);
+  border-color: var(--text-dim);
+}
+
+/* Employee autocomplete */
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  border-radius: 0 0 4px 4px;
+}
+
+.suggestions .suggestion-item {
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0eee8;
+}
+
+.suggestions .suggestion-item:hover {
+  background: var(--bg-cream);
+}
+
+.suggestions .suggestion-item .sug-meta {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-left: 8px;
+}
+
 /* Content */
 
 .content {
