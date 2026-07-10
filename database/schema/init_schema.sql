@@ -119,7 +119,8 @@ CREATE TABLE IF NOT EXISTS staging.timesheet_staging (
     scheduled_end_datetime TIMESTAMP,
     source_file TEXT NOT NULL,
     loaded_at TIMESTAMP NOT NULL DEFAULT now(),
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CHECK (hours_worked IS NULL OR hours_worked >= 0)
 );
 
 CREATE INDEX IF NOT EXISTS idx_timesheet_staging_employee_id
@@ -175,7 +176,10 @@ CREATE TABLE IF NOT EXISTS curated.employee (
     clinical_level TEXT,
     is_placeholder BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP NOT NULL DEFAULT now()
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    CHECK (tenure_days IS NULL OR tenure_days >= 0),
+    CHECK (term_date IS NULL OR hire_date IS NULL OR term_date >= hire_date),
+    CHECK (years_of_experience IS NULL OR years_of_experience >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS curated.timesheet (
@@ -196,7 +200,9 @@ CREATE TABLE IF NOT EXISTS curated.timesheet (
     is_early_departure BOOLEAN,
     is_overtime BOOLEAN,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    UNIQUE (client_employee_id, punch_in_datetime, punch_out_datetime)
+    UNIQUE (client_employee_id, punch_in_datetime, punch_out_datetime),
+    CHECK (hours_worked IS NULL OR hours_worked >= 0),
+    CHECK (punch_out_datetime IS NULL OR punch_in_datetime IS NULL OR punch_out_datetime > punch_in_datetime)
 );
 
 CREATE INDEX IF NOT EXISTS idx_curated_timesheet_employee_id

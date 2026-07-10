@@ -7,6 +7,7 @@ from etl.transform.employee_transform import run_employee_transform
 from etl.transform.timesheet_transform import run_timesheet_transform
 from etl.load.loader import run_employee_load, run_timesheet_load
 from etl.quality_checks.validation import run_quality_checks
+from etl.reporting.pipeline_report import run_pipeline_report
 
 default_args = {
     "owner": "neetika",
@@ -54,6 +55,11 @@ with DAG(
         python_callable=run_quality_checks,
     )
 
+    report_task = PythonOperator(
+        task_id="generate_pipeline_report",
+        python_callable=run_pipeline_report,
+    )
+
     extract_task >> transform_employee_task >> transform_timesheet_task
     transform_timesheet_task >> load_employee_task >> load_timesheet_task
-    load_timesheet_task >> quality_check_task
+    load_timesheet_task >> quality_check_task >> report_task

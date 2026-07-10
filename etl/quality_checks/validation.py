@@ -15,17 +15,26 @@ class QualityCheckFailure(Exception):
     pass
 
 
-def run_check(engine, name, severity, query, threshold_check):
+def run_check(engine, name, severity, query, threshold_check, details_query=None):
     with engine.connect() as conn:
         result = conn.execute(text(query)).scalar()
 
     passed = threshold_check(result)
+
+    details = None
+    if not passed and details_query:
+        with engine.connect() as conn:
+            raw = conn.execute(text(details_query)).fetchall()
+        details = "; ".join(str(r[0]) for r in raw[:5]) if raw else None
+        if len(raw) > 5:
+            details += f" (and {len(raw) - 5} more)"
 
     return {
         "check_name": name,
         "severity": severity,
         "passed": bool(passed),
         "metric_value": float(result) if result is not None else None,
+        "details": details,
     }
 
 
@@ -36,6 +45,13 @@ def get_checks(engine):
         engine, "curated_employee_no_duplicate_ids", "critical",
         "SELECT COUNT(*) - COUNT(DISTINCT client_employee_id) FROM curated.employee",
         lambda v: v == 0,
+        details_query="""
+            SELECT client_employee_id || ': ' || COUNT(*)::TEXT || ' duplicates'
+            FROM curated.employee
+            GROUP BY client_employee_id
+            HAVING COUNT(*) > 1
+            LIMIT 5
+        """,
     ))
 
     checks.append(run_check(
@@ -46,6 +62,14 @@ def get_checks(engine):
         WHERE e.client_employee_id IS NULL
         """,
         lambda v: v == 0,
+        details_query="""
+            SELECT DISTINCT t.client_employee_id || ': ' || COUNT(*)::TEXT || ' orphan rows'
+            FROM curated.timesheet t
+            LEFT JOIN curated.employee e ON t.client_employee_id = e.client_employee_id
+            WHERE e.client_employee_id IS NULL
+            GROUP BY t.client_employee_id
+            LIMIT 5
+        """,
     ))
 
     checks.append(run_check(
@@ -55,6 +79,12 @@ def get_checks(engine):
         WHERE term_date IS NOT NULL AND hire_date IS NOT NULL AND term_date < hire_date
         """,
         lambda v: v == 0,
+        details_query="""
+            SELECT client_employee_id || ': hired ' || hire_date || ' term ' || term_date
+            FROM curated.employee
+            WHERE term_date IS NOT NULL AND hire_date IS NOT NULL AND term_date < hire_date
+            LIMIT 5
+        """,
     ))
 
     checks.append(run_check(
@@ -65,6 +95,13 @@ def get_checks(engine):
         AND punch_out_datetime <= punch_in_datetime
         """,
         lambda v: v == 0,
+        details_query="""
+            SELECT client_employee_id || ': in=' || punch_in_datetime || ' out=' || punch_out_datetime
+            FROM curated.timesheet
+            WHERE punch_in_datetime IS NOT NULL AND punch_out_datetime IS NOT NULL
+            AND punch_out_datetime <= punch_in_datetime
+            LIMIT 5
+        """,
     ))
 
     checks.append(run_check(
@@ -74,6 +111,12 @@ def get_checks(engine):
         WHERE is_placeholder = false AND hire_date IS NULL
         """,
         lambda v: v == 0,
+        details_query="""
+            SELECT client_employee_id || ': ' || COALESCE(first_name, '?') || ' ' || COALESCE(last_name, '?')
+            FROM curated.employee
+            WHERE is_placeholder = false AND hire_date IS NULL
+            LIMIT 5
+        """,
     ))
 
     checks.append(run_check(
@@ -83,7 +126,7 @@ def get_checks(engine):
             100.0 * COUNT(*) FILTER (WHERE is_late_arrival IS NULL) / NULLIF(COUNT(*), 0), 2
         ) FROM curated.timesheet
         """,
-        lambda v: v is not None and v < 70,
+        lambda v: v is not None and v < 10,
     ))
 
     checks.append(run_check(
@@ -93,7 +136,7 @@ def get_checks(engine):
             100.0 * COUNT(*) FILTER (WHERE is_placeholder = true) / NULLIF(COUNT(*), 0), 2
         ) FROM curated.employee
         """,
-        lambda v: v is not None and v < 99.9,
+        lambda v: v is not None and v < 50,
     ))
 
     return checks
@@ -116,7 +159,7 @@ def save_results_to_db(engine, results):
                     "severity": r["severity"],
                     "passed": r["passed"],
                     "metric_value": r["metric_value"],
-                    "details": None,
+                    "details": r.get("details"),
                 },
             )
 
