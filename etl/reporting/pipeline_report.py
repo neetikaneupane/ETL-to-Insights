@@ -1,11 +1,20 @@
 import os
 import json
+from decimal import Decimal
 from datetime import datetime
 from sqlalchemy import text
 from etl.utils.db_connection import get_engine
 from etl.utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Decimal):
+            return float(o)
+        return super().default(o)
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REPORTS_DIR = os.path.join(BASE_DIR, "docs", "pipeline_reports")
@@ -159,7 +168,7 @@ def run_pipeline_report():
     }
     json_path = os.path.join(REPORTS_DIR, f"pipeline_report_{ts_safe}.json")
     with open(json_path, "w") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(summary, f, indent=2, cls=DecimalEncoder)
     logger.info(f"JSON report saved to {json_path}")
 
     logger.info(f"Pipeline report finished ({duration:.1f}s)")
