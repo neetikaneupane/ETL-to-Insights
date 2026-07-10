@@ -1,6 +1,6 @@
 from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from api.routers import employee, timesheet, analytics
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,6 +30,11 @@ def global_exception_handler(request: Request, exc: Exception):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal server error"},
     )
+
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.post("/token")
