@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from sqlalchemy import text
-from etl.utils.db_connection import get_engine
+from etl.utils.db_connection import get_engine, load_config
 from etl.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,12 +39,21 @@ def run_check(engine, name, severity, query, threshold_check, details_query=None
 
 
 def get_checks(engine):
+    config = load_config()
+    qc = config.get("quality_checks", {})
+    zero_tol = qc.get("zero_tolerance_critical", 0)
+    missing_pct = qc.get("missing_schedule_percentage_threshold", 10)
+    placeholder_pct = qc.get("placeholder_ratio_percentage_threshold", 50)
+
+    def max_allowed(threshold):
+        return lambda v: v is not None and v <= threshold
+
     checks = []
 
     checks.append(run_check(
         engine, "curated_employee_no_duplicate_ids", "critical",
         "SELECT COUNT(*) - COUNT(DISTINCT client_employee_id) FROM curated.employee",
-        lambda v: v == 0,
+        max_allowed(zero_tol),
         details_query="""
             SELECT client_employee_id || ': ' || COUNT(*)::TEXT || ' duplicates'
             FROM curated.employee
@@ -61,7 +70,7 @@ def get_checks(engine):
         LEFT JOIN curated.employee e ON t.client_employee_id = e.client_employee_id
         WHERE e.client_employee_id IS NULL
         """,
-        lambda v: v == 0,
+        max_allowed(zero_tol),
         details_query="""
             SELECT DISTINCT t.client_employee_id || ': ' || COUNT(*)::TEXT || ' orphan rows'
             FROM curated.timesheet t
@@ -78,7 +87,7 @@ def get_checks(engine):
         SELECT COUNT(*) FROM curated.employee
         WHERE term_date IS NOT NULL AND hire_date IS NOT NULL AND term_date < hire_date
         """,
-        lambda v: v == 0,
+        max_allowed(zero_tol),
         details_query="""
             SELECT client_employee_id || ': hired ' || hire_date || ' term ' || term_date
             FROM curated.employee
@@ -94,7 +103,7 @@ def get_checks(engine):
         WHERE punch_in_datetime IS NOT NULL AND punch_out_datetime IS NOT NULL
         AND punch_out_datetime <= punch_in_datetime
         """,
-        lambda v: v == 0,
+        max_allowed(zero_tol),
         details_query="""
             SELECT client_employee_id || ': in=' || punch_in_datetime || ' out=' || punch_out_datetime
             FROM curated.timesheet
@@ -110,7 +119,7 @@ def get_checks(engine):
         SELECT COUNT(*) FROM curated.employee
         WHERE is_placeholder = false AND hire_date IS NULL
         """,
-        lambda v: v == 0,
+        max_allowed(zero_tol),
         details_query="""
             SELECT client_employee_id || ': ' || COALESCE(first_name, '?') || ' ' || COALESCE(last_name, '?')
             FROM curated.employee
@@ -126,7 +135,7 @@ def get_checks(engine):
             100.0 * COUNT(*) FILTER (WHERE is_late_arrival IS NULL) / NULLIF(COUNT(*), 0), 2
         ) FROM curated.timesheet
         """,
-        lambda v: v is not None and v < 10,
+        max_allowed(missing_pct),
     ))
 
     checks.append(run_check(
@@ -136,7 +145,7 @@ def get_checks(engine):
             100.0 * COUNT(*) FILTER (WHERE is_placeholder = true) / NULLIF(COUNT(*), 0), 2
         ) FROM curated.employee
         """,
-        lambda v: v is not None and v < 50,
+        max_allowed(placeholder_pct),
     ))
 
     return checks

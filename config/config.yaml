@@ -30,6 +30,12 @@ business_rules:
   grace_period_minutes: 5
   early_attrition_months: 6
 
+quality_checks:
+  # maximum allowed value for each check (value <= threshold = pass)
+  zero_tolerance_critical: 0
+  missing_schedule_percentage_threshold: 10
+  placeholder_ratio_percentage_threshold: 50
+
 logging:
   level: INFO
   log_dir: logs/

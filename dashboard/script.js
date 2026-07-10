@@ -21,7 +21,6 @@ const filterEnd = document.getElementById("filter-end");
 const filterDept = document.getElementById("filter-dept");
 const filterEmployee = document.getElementById("filter-employee");
 const employeeSuggestions = document.getElementById("employee-suggestions");
-const filterApply = document.getElementById("filter-apply");
 const filterReset = document.getElementById("filter-reset");
 
 let employeeSearchTimeout = null;
@@ -366,19 +365,37 @@ function setupEmployeeSearch() {
   });
 }
 
-function setupFilterButtons() {
-  filterApply.addEventListener("click", function() {
-    filters.startDate = filterStart.value;
-    filters.endDate = filterEnd.value;
-    filters.department = filterDept.value;
-    const empVal = filterEmployee.value.trim();
-    if (empVal && !empVal.includes("(") && empVal !== filters.employeeId) {
-      filters.employeeId = empVal;
-    } else if (!empVal) {
-      filters.employeeId = "";
-    }
-    log("filters applied", "ok");
+function applyFilters() {
+  filters.startDate = filterStart.value;
+  filters.endDate = filterEnd.value;
+  filters.department = filterDept.value;
+  const empVal = filterEmployee.value.trim();
+  if (empVal && !empVal.includes("(") && empVal !== filters.employeeId) {
+    filters.employeeId = empVal;
+  } else if (!empVal) {
+    filters.employeeId = "";
+  }
+}
+
+function setupAutoApply() {
+  filterStart.addEventListener("change", function() {
+    applyFilters();
     loadAllCharts();
+  });
+  filterEnd.addEventListener("change", function() {
+    applyFilters();
+    loadAllCharts();
+  });
+  filterDept.addEventListener("change", function() {
+    applyFilters();
+    loadAllCharts();
+  });
+  filterEmployee.addEventListener("blur", function() {
+    const val = this.value.trim();
+    if (!val && filters.employeeId) {
+      filters.employeeId = "";
+      loadAllCharts();
+    }
   });
 
   filterReset.addEventListener("click", function() {
@@ -445,4 +462,4 @@ logoutButton.addEventListener("click", () => {
 });
 
 setupEmployeeSearch();
-setupFilterButtons();
+setupAutoApply();
