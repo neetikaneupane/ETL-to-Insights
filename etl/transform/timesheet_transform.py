@@ -33,10 +33,6 @@ def is_junk_employee_id(emp_id):
 
     if emp_id in KNOWN_JUNK_IDS:
         return True
-    if any(char.isalpha() for char in emp_id):
-        return True
-    if "-" in emp_id:
-        return True
     if REPEATED_DIGIT_PATTERN.match(emp_id):
         return True
 
@@ -140,14 +136,13 @@ def load_to_staging(df, engine):
 
     with engine.begin() as conn:
         conn.execute(text("TRUNCATE TABLE staging.timesheet_staging RESTART IDENTITY CASCADE"))
-
-    insert_df.to_sql(
-        "timesheet_staging",
-        engine,
-        schema="staging",
-        if_exists="append",
-        index=False,
-    )
+        insert_df.to_sql(
+            "timesheet_staging",
+            conn,
+            schema="staging",
+            if_exists="append",
+            index=False,
+        )
 
     logger.info(f"Loaded {len(insert_df)} timesheet rows into staging.timesheet_staging")
 

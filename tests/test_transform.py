@@ -8,7 +8,7 @@ def test_is_junk_employee_id():
     assert is_junk_employee_id("999999") is True
     assert is_junk_employee_id("TEST2") is True
     assert is_junk_employee_id("CMCRN-3") is True
-    assert is_junk_employee_id("101075-101012") is True
+    assert is_junk_employee_id("101075-101012") is False
     assert is_junk_employee_id("1111") is True
     assert is_junk_employee_id(None) is True
     assert is_junk_employee_id("00025") is False
