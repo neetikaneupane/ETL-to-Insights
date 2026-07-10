@@ -25,8 +25,8 @@ End-to-end ETL pipeline with analytics generation, REST API, and interactive das
               ┌────────────┼────────────┐
               │            │            │
        ┌──────▼─────┐ ┌───▼────┐ ┌────▼──────┐
-       │  Analytics  │ │  API   │ │Dashboard  │
-       │   SQL KPIs  │ │FastAPI │ │ Plotly.js │
+       │  Analytics │ │  API   │ │Dashboard  │
+       │   SQL KPIs │ │FastAPI │ │ Plotly.js │
        └────────────┘ └────────┘ └───────────┘
 ```
 
