@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Pipeline Report - 2026-07-10 08:46:25</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 1000px; margin: 2em auto; padding: 0 1em; }
+h1 { color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background: #f5f5f5; }
+tr:nth-child(even) { background: #fafafa; }
+.summary { font-size: 1.1em; margin: 1em 0; }
+</style></head>
+<body>
+<h1>ETL Pipeline Report</h1>
+<p class="summary"><strong>Run:</strong> 2026-07-10 08:46:25 &mdash; <strong>Duration:</strong> 0.1s</p>
+<h2>Row Counts</h2>
+<table><thead><tr><th>Layer</th><th>Table</th><th>Rows</th></tr></thead><tbody>
+<tr><td>raw</td><td>employee_raw</td><td>50</td></tr>
+<tr><td>raw</td><td>timesheet_raw</td><td>412,571</td></tr>
+<tr><td>staging</td><td>employee_staging</td><td>10,790</td></tr>
+<tr><td>staging</td><td>timesheet_staging</td><td>412,535</td></tr>
+<tr><td>curated</td><td>employee</td><td>10,790</td></tr>
+<tr><td>curated</td><td>timesheet</td><td>381,701</td></tr>
+<tr><td>curated</td><td>employee (active)</td><td>44</td></tr>
+<tr><td>curated</td><td>employee (placeholder)</td><td>10,740</td></tr>
+</tbody></table>
+<h2>Quality Checks</h2>
+<table><thead><tr><th>Check</th><th>Severity</th><th>Result</th><th>Value</th><th>Details</th></tr></thead><tbody>
+<tr><td>curated_employee_no_duplicate_ids</td><td>critical</td><td>&#9989;</td><td>0.0</td><td>-</td></tr>
+<tr><td>curated_timesheet_orphan_employee_refs</td><td>critical</td><td>&#9989;</td><td>0.0</td><td>-</td></tr>
+<tr><td>curated_employee_hire_before_term</td><td>critical</td><td>&#9989;</td><td>0.0</td><td>-</td></tr>
+<tr><td>curated_timesheet_punch_out_after_in</td><td>critical</td><td>&#9989;</td><td>0.0</td><td>-</td></tr>
+<tr><td>curated_employee_null_hire_date_real_employees</td><td>warning</td><td>&#9989;</td><td>0.0</td><td>-</td></tr>
+<tr><td>curated_timesheet_missing_schedule_percentage</td><td>warning</td><td>&#10060;</td><td>56.76</td><td>-</td></tr>
+<tr><td>curated_employee_placeholder_ratio_percentage</td><td>warning</td><td>&#10060;</td><td>99.54</td><td>-</td></tr>
+</tbody></table>
+<p><strong>5/7 checks passed</strong></p>
+</body></html>

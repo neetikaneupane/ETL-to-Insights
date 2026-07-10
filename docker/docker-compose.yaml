@@ -108,7 +108,7 @@ services:
       - ../config/.env
     environment:
       DB_HOST: postgres
-      ADMIN_PASSWORD_HASH: $$2b$$12$$uczN7./YyU/wSbZIEPr79OEod9VDosLgv1ThGdHCLjl0GTZsi0laO
+      ADMIN_PASSWORD_HASH: $$2b$$12$$QjOx3JMJZAjLUhGRjYssUu0zj.zmQn4uny/zoyr3kcvylkiDFTNkC
     ports:
       - "8000:8000"
 

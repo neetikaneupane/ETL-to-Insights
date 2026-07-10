@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-07-10 08:46:25",
+  "duration_seconds": 0.108219,
+  "row_counts": {
+    "raw.employee_raw": 50,
+    "raw.timesheet_raw": 412571,
+    "staging.employee_staging": 10790,
+    "staging.timesheet_staging": 412535,
+    "curated.employee": 10790,
+    "curated.timesheet": 381701,
+    "curated.employee (active)": 44,
+    "curated.employee (placeholder)": 10740
+  },
+  "quality_checks": [
+    {
+      "check_name": "curated_employee_no_duplicate_ids",
+      "severity": "critical",
+      "passed": true,
+      "metric_value": 0.0,
+      "details": null
+    },
+    {
+      "check_name": "curated_timesheet_orphan_employee_refs",
+      "severity": "critical",
+      "passed": true,
+      "metric_value": 0.0,
+      "details": null
+    },
+    {
+      "check_name": "curated_employee_hire_before_term",
+      "severity": "critical",
+      "passed": true,
+      "metric_value": 0.0,
+      "details": null
+    },
+    {
+      "check_name": "curated_timesheet_punch_out_after_in",
+      "severity": "critical",
+      "passed": true,
+      "metric_value": 0.0,
+      "details": null
+    },
+    {
+      "check_name": "curated_employee_null_hire_date_real_employees",
+      "severity": "warning",
+      "passed": true,
+      "metric_value": 0.0,
+      "details": null
+    },
+    {
+      "check_name": "curated_timesheet_missing_schedule_percentage",
+      "severity": "warning",
+      "passed": false,
+      "metric_value": 56.76,
+      "details": null
+    },
+    {
+      "check_name": "curated_employee_placeholder_ratio_percentage",
+      "severity": "warning",
+      "passed": false,
+      "metric_value": 99.54,
+      "details": null
+    }
+  ]
+}
