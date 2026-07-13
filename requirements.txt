@@ -1,8 +1,8 @@
-sqlalchemy
+sqlalchemy>=2.0
 psycopg2-binary
 pyyaml
 python-dotenv
-pandas 
+pandas
 minio
 fastapi
 uvicorn
@@ -10,6 +10,6 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
 bcrypt==4.0.1
-email-validator
+email-validator>=2.0
 requests
 pytest
